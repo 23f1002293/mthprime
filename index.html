@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nth Prime Number Finder</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 2rem 3rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        form {
+            margin-top: 1.5rem;
+        }
+        input[type="number"] {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            width: 100px;
+            text-align: center;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: none;
+            background-color: #3498db;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #a9a9a9;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            min-height: 1.5rem;
+            font-weight: bold;
+        }
+        .error {
+            color: #e74c3c;
+        }
+        .success {
+            color: #2ecc71;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Nth Prime Number Finder</h1>
+        <p>Enter a positive integer 'n' to find the nth prime number.</p>
+        <form id="primeForm">
+            <label for="n_input">Enter n:</label>
+            <input type="number" id="n_input" name="n" min="1" required placeholder="e.g., 100">
+            <button type="submit" id="submitBtn">Find Prime</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('primeForm');
+        const input = document.getElementById('n_input');
+        const resultDiv = document.getElementById('result');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const n = input.value;
+
+            if (!n || n < 1) {
+                resultDiv.textContent = 'Please enter a positive integer.';
+                resultDiv.className = 'error';
+                return;
+            }
+
+            // Provide user feedback
+            submitBtn.disabled = true;
+            resultDiv.textContent = 'Calculating...';
+            resultDiv.className = '';
+
+            try {
+                const response = await fetch(`/api/get_prime?n=${n}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Ordinal suffix (st, nd, rd, th)
+                    const j = n % 10, k = n % 100;
+                    let suffix = "th";
+                    if (j == 1 && k != 11) {
+                        suffix = "st";
+                    } else if (j == 2 && k != 12) {
+                        suffix = "nd";
+                    } else if (j == 3 && k != 13) {
+                        suffix = "rd";
+                    }
+                    resultDiv.innerHTML = `The ${n}<sup>${suffix}</sup> prime is: <span class="success">${data.prime}</span>`;
+                } else {
+                    resultDiv.textContent = `Error: ${data.error}`;
+                    resultDiv.className = 'error';
+                }
+            } catch (error) {
+                resultDiv.textContent = 'An unexpected network error occurred.';
+                resultDiv.className = 'error';
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+</html>
